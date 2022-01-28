@@ -1,26 +1,52 @@
 import { Box, Text, TextField, Image, Button } from '@skynexui/components';
 import React from 'react';
 import appConfig from '../config.json';
+import { createClient } from '@supabase/supabase-js';
+
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMxMTU2MywiZXhwIjoxOTU4ODg3NTYzfQ.Btb6cahF9nVS8dNOB-8w_sxffFjN3gPmh7jh8xVljRk';
+const SUPABASE_URL = 'https://kwdgnjumpjdptwgfythd.supabase.co';
+
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 export default function ChatPage() {
     const [mensagem, setMensagem] = React.useState('');
     const [chat, setChat] = React.useState([]);
 
-
+    React.useEffect(() => {
+        supabaseClient
+        .from('mensagens')
+        .select('*')
+        .order('id', { ascending: false })
+        .then(({ data }) => {
+            // console.log('Dados da consulta', data);
+            setChat(data);
+        });
+    }, []);
+    
     // Sua lógica vai aqui
     function handleNovaMensagem(novaMensagem) {
-        const mensagem = {
-            texto: novaMensagem,
-            de: 'PabloDomingos',
-            id: chat.length + 1,
-        };
+        if (!(mensagem === '')) {
+            const mensagem = {
+                texto: novaMensagem,
+                de: 'peas',
+                // id: chat.length + 1,
+            };
 
-        setChat([
-            mensagem,
-            ...chat,
-        ]);
-        setMensagem('');
-    }
+                supabaseClient
+                    .from('mensagens')
+                    .insert([
+                        mensagem
+                    ])
+                    .then(({ data }) => {
+                        setChat([
+                            data[0],
+                            ...chat,
+                        ]);
+                    });
+
+                }
+            setMensagem('');
+        }
     // ./Sua lógica vai aqui
     return (
         <Box
@@ -71,7 +97,7 @@ export default function ChatPage() {
                         as="form"
                         styleSheet={{
                             display: 'flex',
-                            alignItems: 'center',
+                            alignItems: 'flex-start',
                         }}
                     >
                         <TextField
@@ -98,19 +124,26 @@ export default function ChatPage() {
                                 marginRight: '12px',
                                 color: appConfig.theme.colors.neutrals[200],
                             }}
-                        />       
+                        />
                         <Button
+                            onClick={(evento) => {
+                                if (evento.type === 'click') {
+                                    evento.preventDefault();
+                                    handleNovaMensagem(mensagem);
+                                }
+                            }}
                             variant='tertiary'
                             colorVariant='neutral'
                             label='Enter'
-                            styleSheet={{ 
+                            styleSheet={{
                                 color: appConfig.theme.colors.neutrals[200],
                                 backgroundColor: appConfig.theme.colors.neutrals[800],
-                                display: 'flex',
+                                padding: '15px 15px',
+                                maxWidth: '30%',
                                 height: '80%',
                                 marginBottom: '5px',
-                             }}
-                        />                
+                            }}
+                        />
                     </Box>
                 </Box>
             </Box>
@@ -137,7 +170,7 @@ function Header() {
 }
 
 function MessageList(props) {
-    console.log('MessageList', props);
+    // console.log('MessageList', props);
     return (
         <Box
             tag="ul"
@@ -178,7 +211,7 @@ function MessageList(props) {
                                     display: 'inline-block',
                                     marginRight: '8px',
                                 }}
-                                src={`https://github.com/vanessametonini.png`}
+                                src={`https://github.com/${mensagem.de}.png`}
                             />
                             <Text tag="strong">
                                 {mensagem.de}
