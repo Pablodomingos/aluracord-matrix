@@ -51,15 +51,18 @@ export default function PaginaInicial() {
     const [username, setUsername] = React.useState('');
     const roteamento = useRouter();
 
-    
+    let novaVariavelUser = '';
+    if (username.length >= 3) {
+        novaVariavelUser = username
+    }
 
     return (
         <>
             <Box
                 styleSheet={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    backgroundColor: appConfig.theme.colors.primary[500],
-                    backgroundImage: 'url(https://virtualbackgrounds.site/wp-content/uploads/2020/08/the-matrix-digital-rain.jpg)',
+                    // backgroundColor: appConfig.theme.colors.primary[100],
+                    backgroundImage: 'url(https://image.freepik.com/vetores-gratis/floresta-de-savana-na-noite-escura_1308-14305.jpg)',
                     backgroundRepeat: 'no-repeat', backgroundSize: 'cover', backgroundBlendMode: 'multiply',
                 }}
             >
@@ -74,16 +77,20 @@ export default function PaginaInicial() {
                         },
                         width: '100%', maxWidth: '700px',
                         borderRadius: '5px', padding: '32px', margin: '16px',
-                        boxShadow: '0 2px 10px 0 rgb(0 0 0 / 20%)',
-                        backgroundColor: appConfig.theme.colors.neutrals[700],
+                        boxShadow: '0 8px 20px 0 rgb(145 50 200 / 20%)',
+                        backgroundImage: 'linear-gradient(225deg, #056C94 , #190A22 80%)',
                     }}
                 >
                     {/* Formulário */}
                     <Box
                         as="form"
                         onSubmit={function (infoDoEvento) {
-                            roteamento.push('/chat');
-                            infoDoEvento.preventDefault();
+                            if (username != '') {
+                                roteamento.push('/chat');
+                                infoDoEvento.preventDefault();
+                            } else {
+
+                            }
                             // window.location.href = './chat';
                         }}
                         styleSheet={{
@@ -92,7 +99,11 @@ export default function PaginaInicial() {
                         }}
                     >
                         <Titulo tag="h2">Boas vindas de volta!</Titulo>
-                        <Text variant="body3" styleSheet={{ marginBottom: '32px', color: appConfig.theme.colors.neutrals[300] }}>
+                        <Text 
+                            variant="body3" 
+                            styleSheet={{ 
+                                marginBottom: '32px', color: appConfig.theme.colors.neutrals[300] 
+                            }}>
                             {appConfig.name}
                         </Text>
 
@@ -112,9 +123,21 @@ export default function PaginaInicial() {
                             type='text'
                             value={username}
                             onChange={function (evento) {
-                                // console.log(evento);
+                                // console.log(evento.target.value.length);
                                 //Onde ta o valor ?
                                 const valor = evento.target.value;
+
+                                /*
+                                Lógica para só aparecer a imagem quando o username for no minimo 3 caracteres.
+                                Mas foi substituida por uma condição que está na linha 54.
+                                const tamanho = evento.target.value.length;
+                                if (tamanho >= 3) {
+                                    setTeste(valor);
+                                } else {
+                                    setTeste('');
+                                }
+                                */
+
                                 //Troca o valor da variável
                                 //através do React e avisa quem precisa
                                 setUsername(valor);
@@ -166,7 +189,7 @@ export default function PaginaInicial() {
                                 borderRadius: '50%',
                                 marginBottom: '16px',
                             }}
-                            src={`https://github.com/${username}.png`}
+                            src={`https://github.com/${novaVariavelUser}.png`}
                         />
                         <Text
                             variant="body4"
@@ -177,7 +200,7 @@ export default function PaginaInicial() {
                                 borderRadius: '1000px'
                             }}
                         >
-                            {username}
+                            {novaVariavelUser}
                         </Text>
                     </Box>
                     {/* Photo Area */}
