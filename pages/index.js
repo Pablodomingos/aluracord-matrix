@@ -86,7 +86,7 @@ export default function PaginaInicial() {
                         as="form"
                         onSubmit={function (infoDoEvento) {
                             if (username != '') {
-                                roteamento.push('/chat');
+                                roteamento.push(`/chat?username=${username}`);
                                 infoDoEvento.preventDefault();
                             } else {
 
@@ -181,6 +181,12 @@ export default function PaginaInicial() {
                             borderRadius: '10px',
                             flex: 1,
                             minHeight: '240px',
+                            transition: '0.2s',
+                            hover: {
+                                maxWidth: '250px',
+                                backgroundColor: 'transparent',
+                                border: 'none',
+                            }
                         }}
                     >
                         <Image
