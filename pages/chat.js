@@ -1,52 +1,81 @@
 import { Box, Text, TextField, Image, Button } from '@skynexui/components';
 import React from 'react';
 import appConfig from '../config.json';
+import { useRouter } from 'next/router';
+import { ButtonSendSticker } from '../src/components/ButtonSendSticker.js';
 import { createClient } from '@supabase/supabase-js';
+import { Scrollbar } from 'react-scrollbars-custom';
 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMxMTU2MywiZXhwIjoxOTU4ODg3NTYzfQ.Btb6cahF9nVS8dNOB-8w_sxffFjN3gPmh7jh8xVljRk';
 const SUPABASE_URL = 'https://kwdgnjumpjdptwgfythd.supabase.co';
 
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
+function escutaMensagensEmTempoReal(adicionaMensagem) {
+    return supabaseClient
+        .from('mensagens')
+        .on('INSERT', (respostaLive) => {
+            adicionaMensagem(respostaLive.new)
+        })
+        .subscribe();
+}
+
 export default function ChatPage() {
+    const roteamento = useRouter();
+    const usuarioLogado = roteamento.query.username;
     const [mensagem, setMensagem] = React.useState('');
-    const [chat, setChat] = React.useState([]);
+    const [chat, setChat] = React.useState([
+        // {
+        //     texto: ':sticker: https://c.tenor.com/TKpmh4WFEsAAAAAC/alura-gaveta-filmes.gif',
+        //     de: 'PabloDomingos',
+        //     id: 1
+        // }
+    ]);
 
     React.useEffect(() => {
         supabaseClient
-        .from('mensagens')
-        .select('*')
-        .order('id', { ascending: false })
-        .then(({ data }) => {
-            // console.log('Dados da consulta', data);
-            setChat(data);
+            .from('mensagens')
+            .select('*')
+            .order('id', { ascending: false })
+            .then(({ data }) => {
+                // console.log('Dados da consulta', data);
+                setChat(data);
+            });
+
+        escutaMensagensEmTempoReal((novaMensagem) => {
+            // console.log(novaMensagem);
+            //Quero reusar um valor de referencia (objeto/array)
+            //Passar uma função pro setState
+
+            setChat((valoAtualDaLista) => {
+                return [
+                    novaMensagem,
+                    ...valoAtualDaLista,
+                ]
+            });
         });
     }, []);
-    
+
     // Sua lógica vai aqui
     function handleNovaMensagem(novaMensagem) {
-        if (!(mensagem === '')) {
+        if (!(mensagem === '') || novaMensagem.startsWith(':sticker:')) {
             const mensagem = {
                 texto: novaMensagem,
-                de: 'peas',
+                de: usuarioLogado,
                 // id: chat.length + 1,
             };
 
-                supabaseClient
-                    .from('mensagens')
-                    .insert([
-                        mensagem
-                    ])
-                    .then(({ data }) => {
-                        setChat([
-                            data[0],
-                            ...chat,
-                        ]);
-                    });
+            supabaseClient
+                .from('mensagens')
+                .insert([
+                    mensagem
+                ])
+                .then(({ data }) => {
+                });
 
-                }
-            setMensagem('');
         }
+        setMensagem('');
+    }
     // ./Sua lógica vai aqui
     return (
         <Box
@@ -85,7 +114,9 @@ export default function ChatPage() {
                         padding: '16px',
                     }}
                 >
-                    <MessageList mensagens={chat} />
+                    <Scrollbar>
+                        <MessageList mensagens={chat} />
+                    </Scrollbar>
                     {/* {chat.map((mensagemAtual) => {
                         return (
                             <li key={mensagemAtual.id}>
@@ -97,7 +128,7 @@ export default function ChatPage() {
                         as="form"
                         styleSheet={{
                             display: 'flex',
-                            alignItems: 'flex-start',
+                            alignItems: 'center',
                         }}
                     >
                         <TextField
@@ -144,6 +175,19 @@ export default function ChatPage() {
                                 marginBottom: '5px',
                             }}
                         />
+                        <Box
+                            styleSheet={{
+                                marginLeft: '10px',
+                            }}
+                        >
+                            {/*  CallBack */}
+                            <ButtonSendSticker
+                                onStickerClick={(sticker) => {
+                                    // console.log(sticker);
+                                    handleNovaMensagem(`:sticker: ${sticker}`);
+                                }}
+                            />
+                        </Box>
                     </Box>
                 </Box>
             </Box>
@@ -171,11 +215,12 @@ function Header() {
 
 function MessageList(props) {
     // console.log('MessageList', props);
+    // console.log(props);
     return (
         <Box
             tag="ul"
             styleSheet={{
-                overflow: 'scroll',
+                overflow: 'auto',
                 display: 'flex',
                 flexDirection: 'column-reverse',
                 flex: 1,
@@ -227,7 +272,16 @@ function MessageList(props) {
                                 {(new Date().toLocaleDateString())}
                             </Text>
                         </Box>
-                        {mensagem.texto}
+                        {/* condicional em REACT usando expreção ternária
+                        Modo declarativo*/}
+                        {mensagem.texto.startsWith(':sticker:')
+                            ? (
+                                <Image src={mensagem.texto.replace(':sticker:', '')} />
+                            )
+                            : (
+                                mensagem.texto
+                            )}
+                        {/* {mensagem.texto} */}
                     </Text>
                 );
             })}
